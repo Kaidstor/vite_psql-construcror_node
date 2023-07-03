@@ -1,5 +1,18 @@
 const {TableModel} = require("../database/models");
 const {db} = require("../database/db");
+const {col} = require("sequelize");
+const {TableService} = require("../services/tableService");
+
+const types = [
+   {type: 'text', sqlType: 'text'},
+   {type: 'list', sqlType: 'JSONB'},
+   {type: 'test', sqlType: 'JSONB'},
+   {type: 'checkbox', sqlType: 'bool'},
+   {type: 'img', sqlType: 'varchar(255)'},
+   {type: 'html', sqlType: 'text'},
+   {type: 'html_c', sqlType: 'JSONB'}, // container
+   {type: 'stack', sqlType: 'JSONB'},
+]
 
 class TableController{
    async findAll(req, res){
@@ -10,6 +23,14 @@ class TableController{
       }) || [];
 
       return res.json({message: 'ok', data})
+   }
+   async findRecords(req, res){
+      const {table} = req.params
+      const [tables] = await db.query(`
+         SELECT * FROM {table}
+      `)
+
+      return res.json(table)
    }
    async findOne(req, res){
       try{
@@ -22,6 +43,21 @@ class TableController{
          return res.json({message: e.message, error: true})
       }
    }
+   async findOneTable(req, res){
+      try{
+         const {tableId, id} = req.params
+
+         const [[table]] = await db.query(`
+            SELECT * FROM table_${tableId} where id = ${id}
+         `)
+         delete table.id
+
+         return res.json(table)
+      }
+      catch (e) {
+         return res.json({message: e.message, error: true})
+      }
+   }
    async add(req, res){
       try{
          // нашли last id
@@ -29,11 +65,11 @@ class TableController{
          const id = +tableLast?.id + 1 || 1
 
          // создали таблицу
-         const dbName = `table_${id}`
-         await db.query(` CREATE TABLE ${dbName} ( id bigserial ); `)
+         const tableName = `table_${id}`
+         await db.query(` CREATE TABLE ${tableName} ( id bigserial ); `)
 
          // добавили инфу о новой таблице
-         const table = await TableModel.create({name: `name ${id}`, dbName})
+         const table = await TableModel.create({name: `name ${id}`, tableName})
          return res.json({data: table, error: false})
       }
       catch (e) {
@@ -43,30 +79,42 @@ class TableController{
    async save(req, res){
       try{
          const {id} = req.params;
-         const {structure} = req.body;
+         const {structure, name} = req.body;
 
          const table = await TableModel.findOne({where: {id}})
 
-         let queryStart = `ALTER TABLE ${table.dbName}`;
+         let queryStart = `ALTER TABLE ${table.tableName}\n`;
          let query = queryStart;
 
-         [...Array(structure?.col || 0).keys()].map(i => {
+         for (let i = 0; i < structure?.col; i++) {
             const col = `col_${i + 1}`
-            const data = structure[col]
-            const prevType = table.structure?.[col]?.type
+            const prevType = TableService.toSqlType(table.structure?.[col]?.type)
+            const newType = TableService.toSqlType(structure[col].type)
 
+            console.log(`'${prevType}', '${newType}'`);
+            if (!prevType)
+               query += `ADD COLUMN ${col} ${newType},\n`
+            // else if (prevType === 'JSONB' && newType === 'text') {
+            //    query += `ALTER COLUMN ${col} TYPE ${newType} using ${col}#>>'{}',\n`
+            // }
+            else if (prevType === 'text' && newType === 'JSONB') {
+               query += `ALTER COLUMN ${col} TYPE ${newType} using to_json(${col}::text),\n`
+            }
+            else if ((prevType === 'text' || prevType === 'varchar(255)') && newType === 'bool') {
+               query += `ALTER COLUMN ${col} TYPE ${newType} using case WHEN coalesce(TRIM(${col}), '') = '' THEN TRUE ELSE FALSE END,\n`
+            }
+            else if (newType !== prevType) {
+               query += `ALTER COLUMN ${col} TYPE ${newType} using ${col}::${newType},\n`
+            }
+         }
 
-            if (data.type !== prevType)
-               query += `
-                ALTER COLUMN ${col} TYPE TEXT, 
-            `
-         })
+         if (queryStart === query && table.name === name)
+            return res.json({message: 'Таблица не изменилась!'})
 
+         query = query.substring(0, query.length - 2)
+         await db.query(query)
 
-         if (queryStart === query) return res.json({message: 'Таблица не изменилась!'})
-
-         query = query.substring(0, query.length - 1)
-         await TableModel.update({structure}, {where: {id}})
+         await TableModel.update({structure, name}, {where: {id}})
 
          return res.json({message: 'ok', error: false})
       }
@@ -76,17 +124,22 @@ class TableController{
 
    }
    async remove(req, res){
-      const {id} = req.params
+      try{
+         const {id} = req.params
 
-      const table = await TableModel.findOne({where: {id}})
+         const table = await TableModel.findOne({where: {id}})
 
-      await db.query(`
-        DROP TABLE ${table.dbName};
+         await db.query(`
+        DROP TABLE ${table.tableName};
       `)
 
-      const data = await TableModel.destroy({where: {id}})
+         const data = await TableModel.destroy({where: {id}})
 
-      return res.json({data, error: false})
+         return res.json({data, error: false})
+      }
+      catch (e) {
+         return res.status(400).json({message: e.message})
+      }
    }
 }
 

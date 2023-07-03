@@ -5,24 +5,33 @@ import TableEdit from "../modules/TableEdit.jsx";
 import tableReducer from "../recucers/tableReducer.js";
 import {TablesContext} from "../context/TablesContext.js";
 import {TableEditContext, TableEditDispatchContext} from "../context/TableEditContext.js";
+import {Link} from "react-router-dom";
 
 const Constructor = () => {
-   const [state, dispatch] = useReducer(tableReducer, {})
    const {data, isLoading, refetch} = useContext(TablesContext)
-   const [tableId, setTableId] = useState(null)
-   const [currentTable, setCurrentTable] = useState(null)
+   const [state, dispatch] = useReducer(tableReducer, {}, val => val)
+   const [table, setTable] = useState(null)
 
    async function setCurrentTableHandler(tableId){
       if (tableId) {
          const table = await getTable(tableId);
-         setCurrentTable(table)
-         dispatch({type: 'changeTable', state: table?.structure})
+         dispatch({type: 'changeTable', state: table?.structure, name: table.name, id: table.id})
       }
    }
 
    useEffect(() => {
-      setCurrentTableHandler(tableId?.id)
-   }, [tableId])
+      setCurrentTableHandler(table?.id)
+   }, [table])
+
+   useEffect(() => {
+      if (table){
+         for(const d of data)
+            if (d.id === table.id) {
+               setTable(d)
+               console.log('table set')
+            }
+      }
+   }, [data])
 
 
    return (
@@ -39,8 +48,8 @@ const Constructor = () => {
 
                      <Stack spacing={1} sx={{ width: 300 }}>
                         <Autocomplete
-                           value={tableId}
-                           onChange={(e, newValue) => setTableId(newValue)}
+                           value={table}
+                           onChange={(e, newValue) => setTable(newValue)}
                            disablePortal
                            noOptionsText='Нет сущностей'
                            id="combo-box-demo"
@@ -51,13 +60,12 @@ const Constructor = () => {
                      </Stack>
 
                      {
-                        currentTable &&
+                        table &&
                         <Button
                            onClick={() => {
-                              removeTable(currentTable.id).then(() => {
-                                 console.log('remove')
+                              removeTable(table?.id).then(() => {
                                  refetch().then(() => {
-                                    setTableId(null)
+                                    setTable(null)
                                  })
                               })
                            }}
@@ -68,19 +76,28 @@ const Constructor = () => {
                      <Button
                         onClick={() => {
                            addTable().then(table => {
-                              refetch().then(() => {
-                                 setTableId(table.id)
-                              })
+                              setTable({label: table.name, id: table.id})
+                              refetch()
                            })
                         }}
                         variant='outlined'
                         size='large'>Добавить
                      </Button>
+
+                     {
+                        table &&
+                        <Link
+                           className='MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge css-9y1egq-MuiButtonBase-root-MuiButton-root'
+                           to={`/table/${table?.id}`}
+                           variant='outlined'
+                           size='large'>Перейти к сущности
+                        </Link>
+                     }
                   </div>
                   {
-                     currentTable ?
+                     table ?
                         <div className='mt-4'>
-                           <TableEdit table={currentTable}/>
+                           <TableEdit/>
                         </div>
                         :
                         <div className='mt-4'>

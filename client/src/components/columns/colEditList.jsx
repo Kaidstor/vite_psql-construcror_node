@@ -26,7 +26,10 @@ const ColTemplate = ({column}) => {
          <Input
             type="text"
             placeholder="Название поля"
-            onChange={e => setValue(e.target.value)}
+            onChange={e => {
+               setValue(e.target.value)
+               dispatch({type: 'changeColName', name: e.target.value, colId})
+            }}
             value={value}
          />
 
@@ -71,7 +74,6 @@ const ColTemplate = ({column}) => {
                      dispatch({type: 'changeListEssence', ref: e.target.value, colId})
                   }}
                >
-                  {console.log(tables)}
                   {tables.map((table) =>
                      <MenuItem key={table.id} value={table.id}>{table.label}</MenuItem>
                   )}

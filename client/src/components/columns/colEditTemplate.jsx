@@ -2,9 +2,10 @@ import {useContext, useState} from "react";
 import {TableEditDispatchContext} from "../../context/TableEditContext.js";
 import {MenuItem, Select, Input} from "@mui/material";
 import {FieldsTypeContext} from "../../context/FieldsTypeContext.js";
+import {FieldContext} from "../../context/FieldContext.js";
 
 
-const ColTemplate = ({column}) => {
+const ColEditTemplate = ({column}) => {
    const types = useContext(FieldsTypeContext)
 
    // для определения текущего вида поля (шаблона)
@@ -14,13 +15,17 @@ const ColTemplate = ({column}) => {
    const [type, setType] = useState(column.type === 'text' ? 1 : typeVal.get(column.type))
    const dispatch = useContext(TableEditDispatchContext)
 
+
    const colId = column.id
    return (
       <>
          <Input
             type="text"
             placeholder="Название поля"
-            onChange={e => setValue(e.target.value)}
+            onChange={e => {
+               setValue(e.target.value)
+               dispatch({type: 'changeColName', name: e.target.value, colId})
+            }}
             value={value}
          />
 
@@ -47,4 +52,6 @@ const ColTemplate = ({column}) => {
    );
 };
 
-export default ColTemplate;
+export default ColEditTemplate;
+
+;

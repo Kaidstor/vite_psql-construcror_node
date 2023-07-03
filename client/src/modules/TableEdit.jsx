@@ -1,15 +1,21 @@
 import {Button, Input} from "@mui/material";
-import {useContext} from "react";
+import {useContext, useState} from "react";
 import TableEditFields from "../components/TableEditFields.jsx";
 import {TableEditContext, TableEditDispatchContext} from "../context/TableEditContext.js";
 import {saveTable} from "../http/tableAPI.js";
+import {TablesContext} from "../context/TablesContext.js";
 
 
-const TableEdit = ({table}) => {
+const TableEdit = () => {
+   const {refetch} = useContext(TablesContext)
    const state= useContext(TableEditContext)
    const dispatch = useContext(TableEditDispatchContext)
+   const [name, setName] = useState(state.name)
 
-
+   function handleInputChange(e){
+      dispatch({type: 'changeTableName', value: e.target.value})
+      setName(e.target.value)
+   }
 
    return (
       <div>
@@ -17,7 +23,8 @@ const TableEdit = ({table}) => {
             classes={{classes: 'text-2xl'}}
             sx={{fontSize: 40, width: '100%'}} // font size of input label
             className='my-4 text-2xl font-bold'
-            value={table.name}
+            value={state.name}
+            onChange={handleInputChange}
          />
          <div className='flex justify-between'>
             <div>
@@ -29,10 +36,13 @@ const TableEdit = ({table}) => {
                              dispatch({type: 'add'})
                           }}
                   >Добавить поле</Button>
-                  <Button variant="contained"
-                          onClick={() => {
-                             saveTable(table.id, state)
-                          }}
+                  <Button
+                     variant="contained"
+                     onClick={() => {
+                        saveTable(state.id, {structure: state, name}).then(
+                           (d) => refetch()
+                        )
+                     }}
                   >Сохранить</Button>
                </div>
             </div>

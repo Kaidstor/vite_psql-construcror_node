@@ -1,8 +1,24 @@
 export default function reducer(state, action) {
-   console.log(action)
-   console.log(state)
+
+   if (action.type === 'changeTableName') {
+      state.name = action.value
+      return state
+   }
+   if (action.type === 'changeColName') {
+      return {
+         ...state,
+         [action.colId]: {
+            ...state[action.colId],
+            name: action.name
+         },
+      };
+   }
    if (action.type === 'changeTable') {
-      return action.state
+      const {state, name, id} = action
+      if (!Object.keys(state || []).length) return {name, id}
+      state.name = name
+      state.id = id
+      return state
    }
    else if (action.type === 'add') {
       const col = {
@@ -19,8 +35,8 @@ export default function reducer(state, action) {
 
       return {
          ...state,
-         col: ++state.col,
-         [`col_${state.col}`]: col
+         col: ++state.col || 1,
+         [`col_${state.col || 1}`]: col
       }
    }
    else if (action.type === 'changeListType') {

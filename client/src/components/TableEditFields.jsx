@@ -1,5 +1,6 @@
 import TableEditField from "./TableEditField.jsx";
 import {FieldsTypeContext} from "../context/FieldsTypeContext.js";
+import {FieldContext} from "../context/FieldContext.js";
 
 const types = [
    {name: 'Текст', value: 1, type: 'text'},
@@ -18,9 +19,12 @@ const TableEditFields = ({fields}) => {
          {
             [...Array(fields?.col || 0).keys()].map(i => {
                const column = {...fields[`col_${i + 1}`], id: `col_${i + 1}`}
-               return <TableEditField key={i} column={column} />
+               return <FieldContext.Provider key={i}  value={types}>
+                  <TableEditField column={column} />
+               </FieldContext.Provider>
             })
          }
+
       </FieldsTypeContext.Provider>
    );
 };

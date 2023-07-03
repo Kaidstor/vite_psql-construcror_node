@@ -1,6 +1,6 @@
-import ColTemplate from "./columns/colTemplate.jsx";
-import ColList from "./columns/colList.jsx";
-import ColStack from "./columns/colStack.jsx";
+import ColEditTemplate from "./columns/colEditTemplate.jsx";
+import ColEditList from "./columns/colEditList.jsx";
+import ColEditStack from "./columns/colEditStack.jsx";
 
 const TableEditField = ({column}) => {
    return (
@@ -8,13 +8,13 @@ const TableEditField = ({column}) => {
       <div className='mt-4 flex gap-4'>
          {
             ['text', 'test', 'checkbox', 'img', 'html', 'html_c'].includes(column.type) ?
-               <ColTemplate column={column}/>
+               <ColEditTemplate column={column}/>
 
             : column.type === 'list' ?
-               <ColList column={column}/>
+               <ColEditList column={column}/>
 
             : column.type === 'stack' ?
-               <ColStack column={column}/>
+               <ColEditStack column={column}/>
 
             : <p>Неизвестный тип</p>
          }
