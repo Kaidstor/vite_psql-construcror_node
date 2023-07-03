@@ -16,7 +16,7 @@ const Layout = () => {
             }
 
          </div>
-         <div className='w-[256px]'></div>
+         <div className='min-w-[256px]'></div>
          <main className='p-8 w-full'>
             <div className='mx-auto max-w-7xl'>
                <Outlet/>
