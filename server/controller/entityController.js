@@ -54,10 +54,6 @@ class EntityController{
 
          Object.keys(colsFiles).forEach(col => {
 
-            console.log(cols)
-            console.log(col)
-            console.log(cols[col])
-
             if (structure[col].type === 'img')
                cols[col] = colsFiles[col][0]
             else{

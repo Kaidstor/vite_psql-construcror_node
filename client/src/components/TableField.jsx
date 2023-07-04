@@ -7,9 +7,11 @@ import TestField from "./fields/TestField.jsx";
 import ImgField from "./fields/ImgField.jsx";
 import CheckboxField from "./fields/CheckboxField.jsx";
 import HtmlField from "./fields/HtmlField.jsx";
+import NumberField from "./fields/NumberField.jsx";
 
 const types = [
    {name: 'Текст', value: 1, type: 'text'},
+   {name: 'Чисто', value: 1, type: 'number'},
    {name: 'Список', value: 2, type: 'list'},
    {name: 'Тест', value: 3, type: 'test'},
    {name: 'Чекбокс', value: 4, type: 'checkbox'},
@@ -35,6 +37,8 @@ const TableField = () => {
          {
             field.type === 'text' ?
                <HtmlTextField/> :
+            field.type === 'number' ?
+               <NumberField/> :
             field.type === 'list' ?
                <HtmlListField/> :
             field.type === 'html_c' ?

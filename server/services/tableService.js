@@ -2,6 +2,7 @@ const {db} = require("../database/db");
 
 const types = {
    'text': 'text',
+   'number': 'NUMERIC(35, 5)',
    'list': 'JSONB',
    'test': 'JSONB',
    'checkbox': 'bool',

@@ -7,7 +7,7 @@ const TableEditField = ({column}) => {
 
       <div className='mt-4 flex gap-4'>
          {
-            ['text', 'test', 'checkbox', 'img', 'html', 'html_c'].includes(column.type) ?
+            ['text', 'number', 'test', 'checkbox', 'img', 'html', 'html_c'].includes(column.type) ?
                <ColEditTemplate column={column}/>
 
             : column.type === 'list' ?

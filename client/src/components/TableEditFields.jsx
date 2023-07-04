@@ -4,13 +4,14 @@ import {FieldContext} from "../context/FieldContext.js";
 
 const types = [
    {name: 'Текст', value: 1, type: 'text'},
-   {name: 'Список', value: 2, type: 'list'},
+   {name: 'Чисто', value: 2, type: 'number'},
    {name: 'Тест', value: 3, type: 'test'},
    {name: 'Чекбокс', value: 4, type: 'checkbox'},
    {name: 'Изображение', value: 5, type: 'img'},
    {name: 'HTML', value: 6, type: 'html'},
    {name: 'HTML контейнер', value: 7, type: 'html_c'},
    {name: 'Очередь', value: 8, type: 'stack'},
+   {name: 'Список', value: 9, type: 'list'},
 ]
 
 const TableEditFields = ({fields}) => {

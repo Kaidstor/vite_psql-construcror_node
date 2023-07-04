@@ -3,17 +3,6 @@ const {db} = require("../database/db");
 const {col} = require("sequelize");
 const {TableService} = require("../services/tableService");
 
-const types = [
-   {type: 'text', sqlType: 'text'},
-   {type: 'list', sqlType: 'JSONB'},
-   {type: 'test', sqlType: 'JSONB'},
-   {type: 'checkbox', sqlType: 'bool'},
-   {type: 'img', sqlType: 'varchar(255)'},
-   {type: 'html', sqlType: 'text'},
-   {type: 'html_c', sqlType: 'JSONB'}, // container
-   {type: 'stack', sqlType: 'JSONB'},
-]
-
 class TableController{
    async findAll(req, res){
       const tables = await TableModel.findAll({raw: true})
@@ -79,18 +68,20 @@ class TableController{
    async save(req, res){
       try{
          const {id} = req.params;
-         const {structure, name} = req.body;
+         const {structure} = req.body;
+         const name = structure.name || 'noname'
 
          const table = await TableModel.findOne({where: {id}})
 
          let queryStart = `ALTER TABLE ${table.tableName}\n`;
-         let query = queryStart;
+         let query = queryStart
 
          for (let i = 0; i < structure?.col; i++) {
             const col = `col_${i + 1}`
             const prevType = TableService.toSqlType(table.structure?.[col]?.type)
             const newType = TableService.toSqlType(structure[col].type)
 
+            console.log(structure[col])
             console.log(`'${prevType}', '${newType}'`);
             if (!prevType)
                query += `ADD COLUMN ${col} ${newType},\n`
@@ -108,11 +99,13 @@ class TableController{
             }
          }
 
-         if (queryStart === query && table.name === name)
+         if (table.structure === structure)
             return res.json({message: 'Таблица не изменилась!'})
 
-         query = query.substring(0, query.length - 2)
-         await db.query(query)
+         if (queryStart !== query){
+            query = query.substring(0, query.length - 2)
+            await db.query(query)
+         }
 
          await TableModel.update({structure, name}, {where: {id}})
 
